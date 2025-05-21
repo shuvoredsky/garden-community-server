@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 
 const port = process.env.PORT || 3000;
@@ -18,7 +18,6 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
-z;
 
 async function run() {
   try {
@@ -36,11 +35,40 @@ async function run() {
     });
 
     app.get("/gardener", async (req, res) => {
-      const result = await gardenTipsCollection.find().toArray();
+      const result = await gardenTipsCollection.find().limit(6).toArray();
       res.send(result);
     });
 
-    // GET route for checking
+    app.get("/gardener/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await gardenTipsCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.put("/gardener/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const updateMyTips = req.body;
+      const updateDoc = {
+        $set: updateMyTips,
+      };
+      const result = await gardenTipsCollection.updateOne(
+        filter,
+        updateDoc,
+        option
+      );
+      res.send(result);
+    });
+
+    app.delete("/gardener/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await gardenTipsCollection.deleteOne(query);
+      res.send(result);
+    });
+
     app.get("/", (req, res) => {
       res.send("Garden server is running!");
     });
