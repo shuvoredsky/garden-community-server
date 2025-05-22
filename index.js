@@ -21,7 +21,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     console.log("MongoDB connected!");
 
     const gardenTipsCollection = client.db("tipsDB").collection("tips");
@@ -62,22 +62,38 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/gardener/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = { $set: req.body };
+
+        const result = await gardenTipsCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      } catch (error) {
+        console.error("PATCH error:", error);
+        res.status(500).send({ error: "Failed to update gardener info" });
+      }
+    });
+
     app.delete("/gardener/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await gardenTipsCollection.deleteOne(query);
       res.send(result);
     });
-
-    app.get("/", (req, res) => {
-      res.send("Garden server is running!");
-    });
   } catch (err) {
     console.error("Connection error:", err);
   }
 }
 
-run();
+run().catch((error) => {
+  console.log(error);
+});
+
+app.get("/", (req, res) => {
+  res.send("Garden server is running!");
+});
 
 app.listen(port, () => {
   console.log(`Garden server is running on port ${port}`);
