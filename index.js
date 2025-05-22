@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 
@@ -8,8 +9,7 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const uri =
-  "mongodb+srv://garden-community:Mr6P0UfLa5rwSr6r@cluster0.fnfwwoo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.fnfwwoo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -21,21 +21,15 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // await client.connect();
+    await client.connect();
     console.log("MongoDB connected!");
 
     const gardenTipsCollection = client.db("tipsDB").collection("tips");
 
-    // POST route to receive tips from client
     app.post("/gardener", async (req, res) => {
       const newtip = req.body;
       console.log("Received tip:", newtip);
       const result = await gardenTipsCollection.insertOne(newtip);
-      res.send(result);
-    });
-
-    app.get("/gardener", async (req, res) => {
-      const result = await gardenTipsCollection.find().limit(6).toArray();
       res.send(result);
     });
 
