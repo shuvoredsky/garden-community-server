@@ -21,7 +21,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     console.log("MongoDB connected!");
 
     const gardenTipsCollection = client.db("tipsDB").collection("tips");
@@ -31,6 +31,28 @@ async function run() {
       console.log("Received tip:", newtip);
       const result = await gardenTipsCollection.insertOne(newtip);
       res.send(result);
+    });
+
+    // app.get("/gardener", async (req, res) => {
+    //   const result = await gardenTipsCollection.find().toArray();
+    //   res.send(result);
+    // });
+
+    app.get("/gardener", async (req, res) => {
+      try {
+        const { difficulty } = req.query;
+        const filter = {};
+
+        if (difficulty) {
+          filter.difficulty = { $regex: new RegExp(`^${difficulty}$`, "i") };
+        }
+
+        const result = await gardenTipsCollection.find(filter).toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching tips:", error);
+        res.status(500).send({ error: "Failed to fetch tips" });
+      }
     });
 
     app.get("/gardener/:id", async (req, res) => {
