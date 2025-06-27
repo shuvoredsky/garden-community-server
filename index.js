@@ -28,7 +28,7 @@ async function run() {
 
     app.post("/gardener", async (req, res) => {
       const newtip = req.body;
-      console.log("Received tip:", newtip);
+
       const result = await gardenTipsCollection.insertOne(newtip);
       res.send(result);
     });
@@ -90,6 +90,14 @@ async function run() {
         console.error("PATCH error:", error);
         res.status(500).send({ error: "Failed to update gardener info" });
       }
+    });
+
+    app.get("/my-items/:email", async (req, res) => {
+      const email = req.params.email;
+
+      const filter = { userEmail: email };
+      const items = await gardenTipsCollection.find(filter).toArray();
+      res.send(items);
     });
 
     app.delete("/gardener/:id", async (req, res) => {
